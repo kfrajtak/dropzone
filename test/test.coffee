@@ -591,9 +591,49 @@ describe "Dropzone", ->
 
           dropzone.cancelUpload.callCount.should.equal 0
           dropzone.removeFile mockFile
-          dropzone.cancelUpload.callCount.should.equal 1
+          dropzone.cancelUpload.callCount.should.equal 2
           done()
         , 10
+        
+    describe ".tryRemoveFile()", ->
+      it "should not remove file when done says no", (done) ->
+        mockFile = getMockFile()
+        
+        dropzone.addFile mockFile
+
+        dropzone.options.tryRemoveFile = (file, done) -> done('no!')
+        
+        setTimeout ->
+
+            dropzone.files.length.should.equal 1
+            
+            dropzone.removeFile mockFile
+            
+            dropzone.files.length.should.equal 1
+
+            done()
+          , 10
+        
+    describe ".tryRemoveFile()", ->
+      it "should remove file when done does not say anything", (done) ->
+        mockFile = getMockFile()
+        
+        dropzone.addFile mockFile
+
+        file = dropzone.files[0]
+        
+        dropzone.options.tryRemoveFile = (file, done) -> done()
+
+        setTimeout ->
+
+            dropzone.files.length.should.equal 1
+            
+            dropzone.removeFile mockFile
+            
+            dropzone.files.length.should.equal 0
+
+            done()
+          , 10
 
     describe ".cancelUpload()", ->
       it "should properly cancel upload if file currently uploading", (done) ->

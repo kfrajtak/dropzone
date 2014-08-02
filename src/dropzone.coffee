@@ -181,6 +181,7 @@ class Dropzone extends Em
     # (This allows for asynchronous validation).
     accept: (file, done) -> done()
 
+    tryRemoveFile: (file, done) -> done()
 
     # Called when dropzone initialized
     # You can add event listeners here
@@ -867,12 +868,26 @@ class Dropzone extends Em
 
 
   # Can be called by the user to remove a file
-  removeFile: (file) ->
+  removeFileInternal: (file) ->
     @cancelUpload file if file.status == Dropzone.UPLOADING
     @files = without @files, file
 
     @emit "removedfile", file
     @emit "reset" if @files.length == 0
+
+  tryRemoveFile: (file, done) ->
+    return @options.tryRemoveFile.call this, file, done
+
+  # Can be called by the user to remove a file
+  removeFile: (file) ->
+    @cancelUpload file if file.status == Dropzone.UPLOADING
+      
+    @tryRemoveFile file, (error) =>
+      if error
+        @_errorProcessing([file], error) 
+      else 
+        @removeFileInternal(file)
+      @_updateMaxFilesReachedClass()
 
   # Removes all files that aren't currently processed from the list
   removeAllFiles: (cancelIfNecessary = off) ->
