@@ -55,7 +55,7 @@ require.define = function (name, exports) {
     exports: exports
   };
 };
-require.register("component~emitter@1.1.2", function (exports, module) {
+require.register("component~emitter@1.1.3", function (exports, module) {
 
 /**
  * Expose `Emitter`.
@@ -267,7 +267,7 @@ require.register("dropzone/lib/dropzone.js", function (exports, module) {
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __slice = [].slice;
 
-  Em = typeof Emitter !== "undefined" && Emitter !== null ? Emitter : require("component~emitter@1.1.2");
+  Em = typeof Emitter !== "undefined" && Emitter !== null ? Emitter : require("component~emitter@1.1.3");
 
   noop = function() {};
 
@@ -321,6 +321,9 @@ require.register("dropzone/lib/dropzone.js", function (exports, module) {
       dictRemoveFileConfirmation: null,
       dictMaxFilesExceeded: "You can not upload any more files.",
       accept: function(file, done) {
+        return done();
+      },
+      tryRemoveFile: function(file, done) {
         return done();
       },
       init: function() {
@@ -1185,7 +1188,7 @@ require.register("dropzone/lib/dropzone.js", function (exports, module) {
       })(this));
     };
 
-    Dropzone.prototype.removeFile = function(file) {
+    Dropzone.prototype.removeFileInternal = function(file) {
       if (file.status === Dropzone.UPLOADING) {
         this.cancelUpload(file);
       }
@@ -1194,6 +1197,26 @@ require.register("dropzone/lib/dropzone.js", function (exports, module) {
       if (this.files.length === 0) {
         return this.emit("reset");
       }
+    };
+
+    Dropzone.prototype.tryRemoveFile = function(file, done) {
+      return this.options.tryRemoveFile.call(this, file, done);
+    };
+
+    Dropzone.prototype.removeFile = function(file) {
+      if (file.status === Dropzone.UPLOADING) {
+        this.cancelUpload(file);
+      }
+      return this.tryRemoveFile(file, (function(_this) {
+        return function(error) {
+          if (error) {
+            _this._errorProcessing([file], error);
+          } else {
+            _this.removeFileInternal(file);
+          }
+          return _this._updateMaxFilesReachedClass();
+        };
+      })(this));
     };
 
     Dropzone.prototype.removeAllFiles = function(cancelIfNecessary) {

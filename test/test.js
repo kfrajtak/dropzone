@@ -860,7 +860,40 @@
             dropzone.getUploadingFiles()[0].should.equal(mockFile);
             dropzone.cancelUpload.callCount.should.equal(0);
             dropzone.removeFile(mockFile);
-            dropzone.cancelUpload.callCount.should.equal(1);
+            dropzone.cancelUpload.callCount.should.equal(2);
+            return done();
+          }, 10);
+        });
+      });
+      describe(".tryRemoveFile()", function() {
+        return it("should not remove file when done says no", function(done) {
+          var mockFile;
+          mockFile = getMockFile();
+          dropzone.addFile(mockFile);
+          dropzone.options.tryRemoveFile = function(file, done) {
+            return done('no!');
+          };
+          return setTimeout(function() {
+            dropzone.files.length.should.equal(1);
+            dropzone.removeFile(mockFile);
+            dropzone.files.length.should.equal(1);
+            return done();
+          }, 10);
+        });
+      });
+      describe(".tryRemoveFile()", function() {
+        return it("should remove file when done does not say anything", function(done) {
+          var file, mockFile;
+          mockFile = getMockFile();
+          dropzone.addFile(mockFile);
+          file = dropzone.files[0];
+          dropzone.options.tryRemoveFile = function(file, done) {
+            return done();
+          };
+          return setTimeout(function() {
+            dropzone.files.length.should.equal(1);
+            dropzone.removeFile(mockFile);
+            dropzone.files.length.should.equal(0);
             return done();
           }, 10);
         });
